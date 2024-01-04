@@ -102,7 +102,7 @@ Compile / mainClass := Some("io.conduktor.ksm.KafkaSecurityManager")
 Test / parallelExecution := false
 
 // Docker stuff
-dockerRepository := Some("conduktor")
+dockerRepository := Some("hrvoje45")
 dockerUpdateLatest := true
 dockerBaseImage := "openjdk:11-jre-slim"
 
