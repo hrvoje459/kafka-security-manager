@@ -44,9 +44,12 @@ case class ConsoleNotification() extends Notification {
           val message = Notification.printAcl(acl, resource)
           log.info(s"$action $message")
       }
+    } else {
+      log.info(s"No changes $action")
     }
   }
 
   override def close(): Unit = ()
 
+  override protected def notifyBoth(addedAcls: Set[(Resource, Acl)], removedAcls: Set[(Resource, Acl)]): Unit = ???
 }

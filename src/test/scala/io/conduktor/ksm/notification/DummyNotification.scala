@@ -54,4 +54,6 @@ class DummyNotification extends Notification {
     * Closing any outstanding objects owned by this notification
     */
   override def close(): Unit = {}
+
+  override protected def notifyBoth(addedAcls: Set[(Resource, Acl)], removedAcls: Set[(Resource, Acl)]): Unit = ???
 }

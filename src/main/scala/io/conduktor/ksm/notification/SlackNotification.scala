@@ -102,4 +102,6 @@ class SlackNotification extends Notification {
   }
 
   override def close(): Unit = {}
+
+  override protected def notifyBoth(addedAcls: Set[(Resource, Acl)], removedAcls: Set[(Resource, Acl)]): Unit = ???
 }

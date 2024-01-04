@@ -35,7 +35,27 @@ trait Notification {
     * @param action ADDED or REMOVED
     * @param acls List of corresponding ACLs
     */
-  protected def notifyOne(action: String, acls: Set[(Resource, Acl)]): Unit
+  protected def notifyOne(action: String, acls: Set[(Resource, Acl)])
+
+
+  /**
+   * Function to be called by external accessors, but should not be implemented by subclasses
+   * Output changes to be made
+   *
+   * @param added   ACLs that have been added
+   * @param removed ACLs that have been removed
+   */
+  def notifyToDo(
+                  added: Set[(Resource, Acl)],
+                  removed: Set[(Resource, Acl)]
+                ): Unit = {
+
+    notifyBoth(added, removed)
+    //notifyOne("REMOVE", removed)
+  }
+
+  protected def notifyBoth(addedAcls: Set[(Resource, Acl)], removedAcls: Set[(Resource, Acl)])
+
 
   /**
     * Notification logic in case of errors
