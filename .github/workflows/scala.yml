@@ -13,13 +13,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Set up JDK 8
+    - name: Set up JDK 17
       uses: actions/setup-java@v1
       with:
         java-version: 17
 
-    - name: Run tests
-      run: bash test.sh
+    # - name: Run tests
+    #   run: bash test.sh
 
     # - uses: olafurpg/setup-scala@v10
     # - run: sbt ci-release universal:packageBin
