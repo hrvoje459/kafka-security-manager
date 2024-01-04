@@ -77,70 +77,72 @@ class AclSynchronizer(
         |=======================================================
       """.stripMargin)
 
-    Try(sourceAcl.refresh()) match {
-      case Success(result) =>
-        failedRefreshes = 0
-        result match {
-          // the source has not changed
-          case None =>
-            if (sourceAclsCache != null) {
-              // the Kafka Acls may have changed so we check against the last known correct SourceAcl that we cached
-              //applySourceAcls(
-              //  sourceAclsCache,
-              //  getKafkaAcls,
-              //  notification,
-              //  authorizer
-              //)
-            }
-          case Some(ParsingContext(parser, reader)) =>
-            val sourceAclResult = parser.aclsFromReader(reader)
-            reader.close()
-            sourceAclResult.result match {
-              // the source has changed
-              case Right(ksmAcls) =>
-                // we have a new result, so we cache it
-                sourceAclsCache = ksmAcls
+    if (sourceAcl.getClass.getName.equals("io.conduktor.ksm.source.FileSourceAcl")){
+      Try(sourceAcl.refresh()) match {
+        case Success(result) =>
+          failedRefreshes = 0
+          result match {
+            // the source has not changed
+            case None =>
+              if (sourceAclsCache != null) {
+                // the Kafka Acls may have changed so we check against the last known correct SourceAcl that we cached
                 //applySourceAcls(
                 //  sourceAclsCache,
                 //  getKafkaAcls,
                 //  notification,
                 //  authorizer
                 //)
+              }
+            case Some(ParsingContext(parser, reader)) =>
+              val sourceAclResult = parser.aclsFromReader(reader)
+              reader.close()
+              sourceAclResult.result match {
+                // the source has changed
+                case Right(ksmAcls) =>
+                  // we have a new result, so we cache it
+                  sourceAclsCache = ksmAcls
+                  //applySourceAcls(
+                  //  sourceAclsCache,
+                  //  getKafkaAcls,
+                  //  notification,
+                  //  authorizer
+                  //)
 
-                log.warn("Kafka existing " + getKafkaAcls)
-                val added = sourceAclsCache -- getKafkaAcls
-                val removed = getKafkaAcls -- sourceAclsCache
-                log.warn("Source wanted " + sourceAclsCache)
-                log.warn("OLD HRVOJE TO ADD " + added)
-                log.warn("OLD Hrvoje TO REMOVE " + removed)
-                log.warn("HRVOJE notify ")
-                notification.notifyToDo(added, removed)
-              case Left(parsingExceptions: List[Exception]) =>
-                // parsing exceptions we want to notify
-                log.error(
-                  "Exceptions while refreshing ACL source:",
-                  parsingExceptions.map(e => e.toString).mkString("\n")
-                )
-                // ugly but for now this will do
-                notification.notifyErrors(
-                  parsingExceptions.map(e => Try(throw e))
-                )
-            }
-        }
-      case Failure(e) =>
-        // errors such as HTTP exceptions when refreshing
-        failedRefreshes += 1
-        try {
-          log.error("Exceptions while refreshing ACL source:", e)
-          if (failedRefreshes >= numFailedRefreshesBeforeNotification) {
-            notification.notifyErrors(List(Try(e)))
-            failedRefreshes = 0
+                  log.warn("Kafka existing " + getKafkaAcls)
+                  val added = sourceAclsCache -- getKafkaAcls
+                  val removed = getKafkaAcls -- sourceAclsCache
+                  log.warn("Source wanted " + sourceAclsCache)
+                  log.warn("OLD HRVOJE TO ADD " + added)
+                  log.warn("OLD Hrvoje TO REMOVE " + removed)
+                  log.warn("HRVOJE notify ")
+                  notification.notifyToDo(added, removed)
+                case Left(parsingExceptions: List[Exception]) =>
+                  // parsing exceptions we want to notify
+                  log.error(
+                    "Exceptions while refreshing ACL source:",
+                    parsingExceptions.map(e => e.toString).mkString("\n")
+                  )
+                  // ugly but for now this will do
+                  notification.notifyErrors(
+                    parsingExceptions.map(e => Try(throw e))
+                  )
+              }
           }
-        } catch {
-          case _: Throwable =>
-            log.warn("Notifications module threw an exception, ignoring...")
-        }
-        log.error("Refreshing the source threw an unexpected exception", e)
+        case Failure(e) =>
+          // errors such as HTTP exceptions when refreshing
+          failedRefreshes += 1
+          try {
+            log.error("Exceptions while refreshing ACL source:", e)
+            if (failedRefreshes >= numFailedRefreshesBeforeNotification) {
+              notification.notifyErrors(List(Try(e)))
+              failedRefreshes = 0
+            }
+          } catch {
+            case _: Throwable =>
+              log.warn("Notifications module threw an exception, ignoring...")
+          }
+          log.error("Refreshing the source threw an unexpected exception", e)
+      }
     }
 
     //exit(0)
