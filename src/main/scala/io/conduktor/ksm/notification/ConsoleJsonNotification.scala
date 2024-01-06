@@ -1,12 +1,15 @@
 package io.conduktor.ksm.notification
 
-import com.typesafe.config.Config
+import com.typesafe.config.{Config, ConfigFactory}
 import io.circe.Json
+import io.conduktor.ksm.AppConfig
+import io.conduktor.ksm.KafkaSecurityManager.config
 import io.conduktor.ksm.parser.csv.CsvParserException
 import io.conduktor.ksm.parser.yaml.YamlParserException
 import kafka.security.auth.{Acl, Resource}
 import org.slf4j.{Logger, LoggerFactory}
 
+import java.io.{File, FileWriter}
 import scala.collection.mutable.ArrayBuffer
 import scala.util.{Failure, Success, Try}
 
@@ -119,7 +122,12 @@ case class ConsoleJsonNotification() extends Notification {
       }
 
 
+
       println(arrayOfAcls.mkString(", "))
+      //println(sys.env.get("TO_DO_FILE_DESTINATION").get)
+      val fileWriter = new FileWriter(new File(sys.env.get("TO_DO_FILE_DESTINATION").get.toString))
+      fileWriter.write("[" + arrayOfAcls.mkString(", ") + "]")
+      fileWriter.close()
       //println("HRVOJE NOT LOGING " + arrayOfAcls.mkString(", ")
     } else {
       log.info(s"No changes to ADD or REMOVE")
